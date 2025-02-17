@@ -1,6 +1,6 @@
 import { GetDataProps, PostDataProps, PatchDataProps, DeleteDataProps, FormDataProps } from "../models/apiModels";
 
-const apiUrl = import.meta.env.API_BASE_URL;
+const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 async function apiRequest<T>(url: string, options: RequestInit): Promise<T | { error: boolean; message: string }> {
     try {
