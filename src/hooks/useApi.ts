@@ -64,19 +64,19 @@ export const useAPI = () => {
 
     const getMutation = useMutation({
         mutationFn: ({ url }: MutationProps) => getData({ url, token })
-    })
+    });
 
     const deleteMutation = useMutation({
         mutationFn: ({ url }: MutationProps) => deleteData({ url, token })
-    })
+    });
 
     const postMutation = useMutation({
         mutationFn: ({ url, body }: MutationProps) => postData({ url, body: (body as Record<string, any>), token })
-    })
+    });
 
     const patchMutation = useMutation({
         mutationFn: ({ url, body }: MutationProps) => patchData({ url, body: (body as Record<string, any>), token })
-    })
+    });
 
     const usePaginatedQuery = ({
         queryKey,
@@ -108,23 +108,13 @@ export const useAPI = () => {
         let totalItems = 0;
         let pageCount = 1;
 
-        if (response?.statusCode === 200) {
+        if (response?.statusCode === 200 && response?.data) {
             const { data: apiData, total, pageCount: apiPageCount } = response;
-
-            if (Array.isArray(apiData)) {
-                data = apiData;
-                totalItems = total ?? apiData.length;
-                pageCount = apiPageCount ?? 1;
-            } else if (apiData && Array.isArray(apiData.data)) {
-                data = apiData.data;
-                totalItems = apiData.total ?? 0;
-                pageCount = apiData.pageCount ?? 1;
-            } else {
-                data = apiData;
-            }
+            data = apiData;
+            totalItems = total ?? 0;
+            pageCount = apiPageCount ?? 1;
         } else if (error) {
             const errorMessage = (error as any)?.response?.data?.message ?? error?.message;
-
             if (showToast) {
                 showErrorToast(errorMessage);
             } else {
@@ -163,29 +153,25 @@ export const useAPI = () => {
         showErrorMessage = true,
         requiredFields = []
     }: HandleMutationProps<any>) => {
-        let isLoading = true;
         try {
             if (validateFormData({ body, requiredFields })) {
                 const response = await mutation.mutateAsync({ url, body });
-                isLoading = false;
-        
                 if (isSuccessfulResponse(response)) {
                     if (showSuccessMessage) showSuccessToast(response?.message);
                     if (invalidateQueryKey.length > 0) {
                         await queryClient.invalidateQueries({ queryKey: invalidateQueryKey });
                     }
-                    return { success: true, data: response, isLoading: false };
+                    return { success: true, data: response };
                 } else if (response?.message && showErrorMessage) {
                     handleErrorMessage(response);
                 }
             }
         } catch (e: any) {
-            isLoading = false;
             if (showErrorMessage) handleErrorMessage(e);
-            return { success: false, error: e, isLoading: false };
+            return { success: false, error: e };
         }
     
-        return { success: false, isLoading: false };
+        return { success: false };
     };
 
     return {
